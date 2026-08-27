@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +40,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# trading agent (python)
+agent/.venv/
+agent/__pycache__/
+agent/**/__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# agent runtime state: credentials-adjacent session token, live audit log,
+# and the local config with your real symbols and limits
+agent/state/*
+!agent/state/.gitkeep
+agent/config.yaml

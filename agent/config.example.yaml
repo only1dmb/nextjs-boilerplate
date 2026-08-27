@@ -1,0 +1,81 @@
+# Robinhood agent configuration.
+#
+# Copy to config.yaml and edit. This file is safe to commit -- credentials
+# live in .env and are never read from here.
+#
+#   cp agent/config.example.yaml agent/config.yaml
+
+# paper   simulate everything, never send an order        <- start here
+# confirm place real orders, but prompt before each one
+# live    place real orders autonomously
+#
+# `live` additionally requires RH_AGENT_ARM_LIVE=I-ACCEPT-THE-RISK in the
+# environment. Two keys, on purpose.
+mode: paper
+
+risk:
+  # Per-order bounds, in dollars.
+  max_order_notional: 250
+  min_order_notional: 1
+
+  # No single symbol may exceed this share of the portfolio after a buy.
+  max_position_pct: 0.10
+
+  # Never spend cash down past this.
+  min_cash_buffer: 100
+
+  # Hard ceiling on orders per calendar day.
+  max_trades_per_day: 5
+
+  # Halt for the day once equity falls this far below the day's open.
+  max_daily_drawdown_pct: 0.03
+
+  # Pattern-day-trader protection for accounts under the threshold.
+  pdt_day_trade_limit: 3
+  pdt_equity_threshold: 25000
+
+  # Wait this long before trading the same symbol again.
+  per_symbol_cooldown_minutes: 60
+
+  # The agent will not trade a symbol that is not on this list. There is no
+  # wildcard -- every symbol any strategy touches must appear here.
+  symbol_allowlist:
+    - AAPL
+    - MSFT
+    - SPY
+
+# limit rests slightly through the quote; market fills at whatever is there.
+order_type: limit
+limit_slippage_pct: 0.002
+time_in_force: gfd
+allow_extended_hours: false
+
+# Seconds between cycles when running the loop. Minimum 30.
+poll_interval_seconds: 300
+
+strategies:
+  - name: sma_crossover
+    enabled: true
+    symbols: [AAPL, MSFT]
+    params:
+      fast: 20
+      slow: 50
+      strength: 1.0
+
+  - name: rsi_reversion
+    enabled: false
+    symbols: [SPY]
+    params:
+      period: 14
+      oversold: 30
+      overbought: 70
+
+  # Holds each symbol at a target share of the portfolio, trading only when
+  # drift leaves the band.
+  - name: target_weights
+    enabled: false
+    symbols: [SPY]
+    params:
+      weights:
+        SPY: 0.30
+      band: 0.05
